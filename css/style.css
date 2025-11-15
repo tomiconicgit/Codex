@@ -1,178 +1,203 @@
 /* --- Global Reset & Fonts --- */
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    -webkit-tap-highlight-color: transparent; /* Remove tap flash on mobile */
 }
 
-html, body {
-    height: 100%;
-    overflow: hidden; /* Prevents mobile scroll/bounce */
+html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-    background-color: #0A0A0A; /* Deep black background */
-    color: #F0F0F0; /* High-contrast off-white text */
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #0A0A0A; /* True black background */
+    color: #F0F0F0;
+    font-family: 'Inter', sans-serif;
     display: flex;
     flex-direction: column;
     height: 100vh;
+    overflow: hidden;
 }
 
-/* --- Wallet Header --- */
-#wallet {
-    background-color: #141417;
-    padding: 15px 20px;
-    cursor: pointer;
-    border-bottom: 1px solid #2a2a2e;
-    font-size: 16px;
-    font-weight: 600;
+/* --- Glass Style --- */
+.glass {
+    background-color: rgba(20, 20, 23, 0.7); /* Dark semi-transparent */
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(42, 42, 46, 0.5); /* Subtle border */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Header Bar --- */
+.top-bar {
+    padding: 12px 16px;
+    flex-shrink: 0;
+    border-radius: 0;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    z-index: 10;
+}
+.header-content {
     display: flex;
+    align-items: center;
     justify-content: space-between;
+}
+.header-title-container {
+    display: flex;
     align-items: center;
-    transition: background-color 0.2s ease;
-    flex-shrink: 0; /* Prevent header from shrinking */
+    gap: 10px;
 }
-
-#wallet:hover, #wallet.active {
-    background-color: #1a1a1e;
+.header-icon {
+    width: 24px;
+    height: 24px;
+    color: #3369FF;
 }
-
-#wallet-caret {
+.header-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+}
+.header-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.status-text {
     font-size: 14px;
-    color: #888;
-    transition: transform 0.3s ease;
+    color: #3369FF;
+    font-weight: 500;
+}
+.status-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #3369FF;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
 }
 
-#wallet.active #wallet-caret {
-    transform: rotate(180deg);
-}
-
-/* --- Stocks Panel --- */
-#stocks-list {
-    background-color: #141417;
-    padding: 20px;
-    display: none;
+/* --- Main Content --- */
+.main-content {
+    flex: 1;
     overflow-y: auto;
-    max-height: 40vh; /* Responsive height */
-    border-bottom: 1px solid #2a2a2e;
-}
-
-.stock-item {
-    display: grid;
-    grid-template-columns: 1fr auto; /* Details on left, buttons on right */
-    gap: 15px;
-    align-items: center;
-    padding: 15px;
-    background-color: #1a1a1e;
-    border-radius: 8px;
-    border: 1px solid #2a2a2e;
-    margin-bottom: 10px;
-}
-
-.stock-details {
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
 }
 
-.stock-symbol {
-    font-size: 18px;
-    font-weight: 600;
-    color: #fff;
+/* --- Page System --- */
+.page-content {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
 }
-
-.stock-price {
-    font-size: 16px;
-    color: #eee;
-}
-
-.stock-meta {
-    font-size: 12px;
-    color: #888;
-}
-
-.stock-buttons {
+.page-content.active {
     display: flex;
-    gap: 8px; /* Side-by-side buttons */
+}
+.page-placeholder {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 15px;
 }
 
-.stock-item button {
-    background-color: #3369FF; /* Subtle tech blue */
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 14px;
-    font-weight: 600;
+/* --- Widgets --- */
+.widget-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.widget {
+    padding: 16px;
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
-
-.stock-item button:hover {
-    background-color: #2956CC;
+.widget:hover {
+    background-color: rgba(30, 30, 33, 0.8);
 }
-
-.stock-item button.sell {
-    background-color: #333;
+.widget-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.widget-balance {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+}
+.widget-sub-balance {
+    font-size: 16px;
+    color: #aaa;
+}
+.market-widget-list {
+    font-family: 'Fira Code', monospace;
+    font-size: 12px;
+    space-y: 4px;
     color: #ccc;
 }
-
-.stock-item button.sell:hover {
-    background-color: #444;
+.market-widget-item {
+    display: flex;
+    justify-content: space-between;
 }
+.market-widget-item .symbol { color: #fff; font-weight: 500; }
+.market-widget-item .price { color: #ccc; }
 
-/* --- Code Editor --- */
+/* --- Editor (Terminal) --- */
 #editor-container {
-    flex: 1; /* Takes up all remaining space */
-    padding: 0; /* No padding, let editor fill */
-    min-height: 0; /* Fix flexbox overflow issue */
+    flex: 1;
+    padding: 10px;
+    min-height: 200px; /* Ensure it has a minimum height */
+    overflow: hidden; /* Prevent internal scrollbars */
 }
-
 .CodeMirror {
-    height: 100% !important; /* Force CodeMirror to fill container */
-    background-color: #0A0A0A; /* Match body background */
+    height: 100% !important;
+    background: transparent !important;
     color: #F0F0F0;
-    border: none;
     font-family: 'Fira Code', 'Source Code Pro', monospace;
     font-size: 14px;
 }
+/* Hide editor scrollbar, as main content scrolls */
+.CodeMirror-vscrollbar { display: none !important; }
 
-/* --- Prompt Modal --- */
-#prompts {
-    display: block; /* Keep in DOM for transition */
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #141417;
-    padding: 20px;
-    padding-bottom: 40px; /* Safe area for mobile */
-    border-top: 1px solid #2a2a2e;
-    z-index: 100;
-    transform: translateY(100%);
-    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+/* --- Prompt & Start Buttons --- */
+.prompt-container, .start-container {
+    padding: 16px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
 }
-
-#prompts.show {
-    transform: translateY(0);
+.prompt-container {
+    display: none; /* Hidden by default */
 }
-
-#prompts p {
-    margin: 0 0 15px 0;
-    font-size: 16px;
-    color: #999;
-    text-align: left;
+#prompt-title {
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 12px;
+    font-weight: 500;
 }
-
-#prompts button {
+.prompt-button, .start-button {
     background-color: #3369FF;
     color: #fff;
     border: none;
-    padding: 15px;
-    margin-top: 10px;
+    padding: 14px;
+    margin-top: 8px;
     cursor: pointer;
     width: 100%;
     display: block;
@@ -183,7 +208,197 @@ body {
     text-align: left;
     transition: background-color 0.2s ease;
 }
-
-#prompts button:hover {
+.start-button {
+    text-align: center;
+    font-size: 18px;
+}
+.prompt-button:hover, .start-button:hover {
     background-color: #2956CC;
+}
+
+/* --- Bottom Navigation --- */
+.bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 4px;
+    flex-shrink: 0;
+    border-radius: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-right: 0;
+    z-index: 10;
+}
+.nav-button {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    border-radius: 8px;
+    color: #888;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s, background-color 0.2s;
+}
+.nav-icon {
+    width: 24px;
+    height: 24px;
+}
+.nav-label {
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 2px;
+}
+.nav-button:hover {
+    color: #ccc;
+    background-color: rgba(42, 42, 46, 0.5);
+}
+.nav-button.active {
+    color: #3369FF;
+}
+
+/* --- Modal System --- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: none; /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+.modal-overlay.active {
+    display: flex;
+}
+.modal-content {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid rgba(42, 42, 46, 0.5);
+    flex-shrink: 0;
+}
+.modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+}
+.modal-close {
+    font-size: 28px;
+    font-weight: 300;
+    color: #888;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+}
+.modal-body {
+    padding: 16px;
+    overflow-y: auto;
+}
+
+/* --- Wallet Modal Content --- */
+.wallet-summary {
+    text-align: center;
+    padding: 10px 0 20px 0;
+}
+.wallet-total-label {
+    font-size: 14px;
+    color: #aaa;
+}
+.wallet-total-value {
+    display: block;
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 4px;
+}
+.wallet-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 16px;
+}
+.wallet-breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    color: #ccc;
+}
+.wallet-breakdown-item span:last-child {
+    font-weight: 500;
+    color: #fff;
+}
+.wallet-breakdown-item.btc span:last-child {
+    color: #3369FF;
+}
+.wallet-divider {
+    border: none;
+    border-top: 1px solid rgba(42, 42, 46, 0.5);
+    margin: 4px 0;
+}
+
+/* --- Market Modal (Stock Item) --- */
+.stock-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 15px;
+    align-items: center;
+    padding: 15px;
+    background-color: rgba(30, 30, 33, 0.7);
+    border-radius: 8px;
+    border: 1px solid rgba(42, 42, 46, 0.5);
+    margin-bottom: 10px;
+}
+.stock-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.stock-symbol {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+}
+.stock-price {
+    font-size: 16px;
+    color: #eee;
+}
+.stock-meta {
+    font-size: 12px;
+    color: #888;
+}
+.stock-buttons {
+    display: flex;
+    gap: 8px;
+}
+.stock-item button {
+    background-color: #3369FF;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.stock-item button:hover {
+    background-color: #2956CC;
+}
+.stock-item button.sell {
+    background-color: #333;
+    color: #ccc;
+}
+.stock-item button.sell:hover {
+    background-color: #444;
 }
