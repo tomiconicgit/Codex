@@ -35,9 +35,9 @@ async function init() {
     updateWallet();
     updateStocks();
 
-    // Passive reward every second
+    // Passive reward every second (Approx $13.75/s to reach $1M in 20h)
     setInterval(() => {
-        cash += 13;
+        cash += 13.75; 
         updateWallet();
     }, 1000);
 
@@ -45,7 +45,7 @@ async function init() {
     setInterval(() => {
         stocks.forEach(stock => {
             stock.price *= (1 + (Math.random() - 0.5) * 0.02);
-            stock.price = Math.max(1, stock.price.toFixed(2));
+            stock.price = Math.max(1, stock.price); // Keep price as number
         });
         updateStocks();
     }, 30000);
@@ -61,12 +61,25 @@ async function init() {
 
 function updateWallet() {
     const btcEquiv = (cash / btcPrice).toFixed(6);
-    document.getElementById('wallet').innerText = `Asset Wallet: $${cash.toFixed(0)} (BTC: ${btcEquiv})`;
+    // Target the specific span to avoid overwriting the caret
+    document.getElementById('wallet-text').innerText = `Asset Wallet: $${cash.toFixed(0)} (BTC: ${btcEquiv})`;
 }
 
 function toggleStocks() {
     const stocksList = document.getElementById('stocks-list');
-    stocksList.style.display = stocksList.style.display === 'none' ? 'block' : 'none';
+    const wallet = document.getElementById('wallet');
+    const caret = document.getElementById('wallet-caret');
+    
+    // Check display style OR empty string (for first click)
+    if (stocksList.style.display === 'none' || stocksList.style.display === '') {
+        stocksList.style.display = 'block';
+        wallet.classList.add('active');
+        caret.innerHTML = '▲';
+    } else {
+        stocksList.style.display = 'none';
+        wallet.classList.remove('active');
+        caret.innerHTML = '▼';
+    }
 }
 
 function updateStocks() {
@@ -75,10 +88,18 @@ function updateStocks() {
     stocks.forEach(stock => {
         const item = document.createElement('div');
         item.className = 'stock-item';
+        
+        // New HTML structure for the redesigned stock item
         item.innerHTML = `
-            ${stock.symbol}: $${stock.price} | Owned: ${stock.owned} | Value: $${(stock.owned * stock.price).toFixed(2)}
-            <button onclick="buyStock('${stock.symbol}')">Buy</button>
-            <button onclick="sellStock('${stock.symbol}')">Sell</button>
+            <div class="stock-details">
+                <span class="stock-symbol">${stock.symbol}</span>
+                <span class="stock-price">$${Number(stock.price).toFixed(2)}</span>
+                <span class="stock-meta">Owned: ${stock.owned} | Value: $${(stock.owned * stock.price).toFixed(2)}</span>
+            </div>
+            <div class="stock-buttons">
+                <button onclick="buyStock('${stock.symbol}')">Buy</button>
+                <button class="sell" onclick="sellStock('${stock.symbol}')">Sell</button>
+            </div>
         `;
         container.appendChild(item);
     });
@@ -104,6 +125,8 @@ function sellStock(symbol) {
     }
 }
 
+// --- Simulation Logic (Unchanged, but modified prompt function) ---
+
 const codeLines = [
     'const greeting = "Hello, World!";',
     'function add(a, b) {',
@@ -118,6 +141,15 @@ const codeLines = [
     '}',
     'for (let i = 0; i < 5; i++) {',
     '  console.log(i);',
+    '}',
+    'class ApiClient {',
+    '  constructor(baseUrl) {',
+    '    this.baseUrl = baseUrl;',
+    '  }',
+    '  async fetch(endpoint) {',
+    '    const res = await fetch(this.baseUrl + endpoint);',
+    '    return res.json();',
+    '  }',
     '}'
 ];
 
@@ -129,7 +161,7 @@ async function typeChar(char) {
     const pos = editor.getCursor();
     editor.replaceRange(char, pos);
     editor.setCursor({line: pos.line, ch: pos.ch + 1});
-    await delay(Math.random() * 150 + 50); // 50-200ms
+    await delay(Math.random() * 100 + 30); // 30-130ms (Slightly faster)
 }
 
 async function backspace(num = 1) {
@@ -139,18 +171,19 @@ async function backspace(num = 1) {
             editor.replaceRange('', {line: pos.line, ch: pos.ch - 1}, pos);
             editor.setCursor({line: pos.line, ch: pos.ch - 1});
         }
-        await delay(Math.random() * 150 + 50);
+        await delay(Math.random() * 100 + 40);
     }
 }
 
 async function typeLine(line) {
     for (let char of line) {
         await typeChar(char);
-        if (Math.random() < 0.05) { // 5% chance to backspace
+        if (Math.random() < 0.04) { // 4% chance to backspace
             await backspace(Math.floor(Math.random() * 3) + 1);
         }
     }
     await typeChar('\n');
+    editor.execCommand("goDocEnd"); // Scroll to bottom
 }
 
 function getRandomLine() {
@@ -158,15 +191,17 @@ function getRandomLine() {
 }
 
 const choiceOptions = [
-    {text: 'return true;', reward: 100},
-    {text: 'console.log("Done");', reward: 200},
-    {text: 'throw new Error("Fail");', reward: 50}
+    {text: 'refactor: optimize-loop', reward: 150},
+    {text: 'feat: add-caching-layer', reward: 300},
+    {text: 'fix: handle-edge-case', reward: 200},
+    {text: 'chore: update-dependencies', reward: 100},
+    {text: 'test: implement-unit-tests', reward: 250}
 ];
 
 async function promptChoice() {
     return new Promise(resolve => {
         const prompts = document.getElementById('prompts');
-        prompts.style.display = 'block';
+        prompts.classList.add('show'); // Use class to trigger animation
 
         const opts = [...choiceOptions].sort(() => Math.random() - 0.5); // Shuffle
 
@@ -180,10 +215,10 @@ async function promptChoice() {
         document.getElementById('option3').onclick = () => choose(opts[2]);
 
         function choose(opt) {
-            typeLine(opt.text);
+            typeLine(`// User selected: ${opt.text}`);
             cash += opt.reward;
             updateWallet();
-            prompts.style.display = 'none';
+            prompts.classList.remove('show'); // Use class to hide
             resolve();
         }
     });
@@ -193,13 +228,17 @@ async function simulateCoding() {
     while (true) {
         const line = getRandomLine();
         await typeLine(line);
-        if (Math.random() < 0.2) { // 20% chance for prompt after line
+        if (Math.random() < 0.15) { // 15% chance for prompt after line
             await promptChoice();
         }
         if (editor.lineCount() > 50) { // Clear if too long
+            await delay(1000);
+            editor.setValue('// Clearing buffer...\n');
+            await delay(1000);
             editor.setValue('');
         }
     }
 }
 
+// Start the application
 init();
