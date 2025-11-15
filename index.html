@@ -2,42 +2,155 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Codex</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Codex v2.0</title>
     
     <link rel="manifest" href="manifest.json">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Codex">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/3369FF/FFFFFF?text=C">
     <meta name="theme-color" content="#0A0A0A">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/monokai.min.css">
+    
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-    
-    <div id="wallet" onclick="toggleStocks()">
-        <span id="wallet-text">Asset Wallet: $0 (BTC: 0)</span>
-        <span id="wallet-caret">▼</span>
-    </div>
-    
-    <div id="stocks-list">
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <header classs="glass top-bar">
+        <div class="header-content">
+            <div class="header-title-container">
+                <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 9l3 3-3 3m5 0h3M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <h1 id="header-title" class="header-title">Main</h1>
+            </div>
+            <div class="header-status">
+                <span class="status-text">Online</span>
+                <div class="status-dot" title="Status: Online"></div>
+            </div>
         </div>
+    </header>
+
+    <main class="main-content">
+        
+        <div id="page-main" class="page-content active">
+            <div class="widget-grid">
+                <div id="asset-widget" class="widget glass">
+                    <h2 class="widget-title">ASSET MONITOR</h2>
+                    <div class="widget-balance" id="btc-balance">0.0000 BTC</div>
+                    <div class="widget-sub-balance" id="btc-value-usd">$0.00 USD</div>
+                </div>
+                <div id="market-widget" class="widget glass">
+                    <h2 class="widget-title">MARKET WATCH</h2>
+                    <div class="market-widget-list" id="stock-list-widget">
+                        </div>
+                </div>
+            </div>
+            
+            <div id="editor-container" class="glass">
+                <textarea id="myTextarea"></textarea>
+            </div>
+            
+            <div id="prompt-area" class="prompt-container glass">
+                <p id="prompt-title">Choose an option:</p>
+                <button id="option1" class="prompt-button"></button>
+                <button id="option2" class="prompt-button"></button>
+                <button id="option3" class="prompt-button"></button>
+            </div>
+
+            <div id="start-button-container" class="start-container glass">
+                <button id="start-button" class="start-button">
+                    INITIALIZE CODEX
+                </button>
+            </div>
+        </div>
+
+        <div id="page-network" class="page-content">
+            <div class="glass page-placeholder">
+                <h2 class="widget-title">NETWORK</h2>
+                <p class="widget-sub-balance">Network module coming soon.</p>
+            </div>
+        </div>
+        
+        <div id="page-mail" class="page-content">
+            <div class="glass page-placeholder">
+                <h2 class="widget-title">INBOX</h2>
+                <p class="widget-sub-balance">Mail module coming soon.</p>
+            </div>
+        </div>
+
+        <div id="page-settings" class="page-content">
+            <div class="glass page-placeholder">
+                <h2 class="widget-title">SETTINGS</h2>
+                <p class="widget-sub-balance">Manage application settings.</p>
+                <button id="reset-game-btn" class="prompt-button">
+                    Purge Local Cache & Reset
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <nav class="bottom-nav glass">
+        <button id="nav-main" class="nav-button active" data-page="main">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+            <span class="nav-label">Main</span>
+        </button>
+        <button id="nav-network" class="nav-button" data-page="network">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h.5A2.5 2.5 0 0021.5 5.5V3.935M3.055 11A9 9 0 0121.945 11M3.055 11v.003c0 .02.002.04.005.059M21.945 11v.003c0 .02-.002.04-.005.059m-18.885- .059a9 9 0 0018.885 0"></path></svg>
+            <span class="nav-label">Network</span>
+        </button>
+        <button id="nav-mail" class="nav-button" data-page="mail">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            <span class="nav-label">Mail</span>
+        </button>
+        <button id="nav-settings" class="nav-button" data-page="settings">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <span class="nav-label">Settings</span>
+        </button>
+    </nav>
     
-    <div id="editor-container">
-        <textarea id="myTextarea"></textarea>
+    <div id="wallet-modal" class="modal-overlay">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h2 class="modal-title">Asset Wallet</h2>
+                <button class="modal-close" data-modal="wallet-modal">&times;</button>
+            </div>
+            <div id="wallet-modal-content" class="modal-body">
+                <div class="wallet-summary">
+                    <span class="wallet-total-label">Total Value</span>
+                    <span id="wallet-modal-total" class="wallet-total-value">$10,000.00</span>
+                </div>
+                <div class="wallet-breakdown">
+                    <div class="wallet-breakdown-item">
+                        <span>Cash</span>
+                        <span id="wallet-modal-cash">$10,000.00</span>
+                    </div>
+                    <div class="wallet-breakdown-item">
+                        <span>Stocks</span>
+                        <span id="wallet-modal-stocks">$0.00</span>
+                    </div>
+                    <hr class="wallet-divider">
+                    <div class="wallet-breakdown-item btc">
+                        <span>BTC Equivalent</span>
+                        <span id="wallet-modal-btc">0.100000 BTC</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
-    <div id="prompts">
-        <p>Choose an option:</p>
-        <button id="option1"></button>
-        <button id="option2"></button>
-        <button id="option3"></button>
+    <div id="market-modal" class="modal-overlay">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h2 class="modal-title">Stock Market</h2>
+                <button class="modal-close" data-modal="market-modal">&times;</button>
+            </div>
+            <div id="market-modal-content" class="modal-body">
+                </div>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
