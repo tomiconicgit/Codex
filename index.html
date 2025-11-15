@@ -2,30 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Codex</title>
-    <link rel="stylesheet" href="css/style.css">
+    
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Codex">
+    <meta name="theme-color" content="#0A0A0A">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/monokai.min.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div id="wallet" onclick="toggleStocks()">Asset Wallet: $0 (BTC: 0)</div>
-    <div id="stocks-list">
-        <!-- Stocks will be populated here -->
+    
+    <div id="wallet" onclick="toggleStocks()">
+        <span id="wallet-text">Asset Wallet: $0 (BTC: 0)</span>
+        <span id="wallet-caret">▼</span>
     </div>
+    
+    <div id="stocks-list">
+        </div>
+    
     <div id="editor-container">
         <textarea id="myTextarea"></textarea>
     </div>
+    
     <div id="prompts">
         <p>Choose an option:</p>
         <button id="option1"></button>
         <button id="option2"></button>
         <button id="option3"></button>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/javascript/javascript.min.js"></script>
     <script src="js/script.js"></script>
