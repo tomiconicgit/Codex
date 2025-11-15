@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SysCore v6.0</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PWA Manifest (inlined) - Updated for Black/Dark Grey Theme -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU3lzQ29yZSBJbnRlcmZhY2UiLCJzaG9ydF9uYW1lIjoiU3lzQ29yZSIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5IjoiZnVsbHNjcmVlbiIsIm9yaWVudGF0aW9uIjoicG9ydHJhaXQiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzAwMDAwMCIsInRoZW1lX2NvbG9yIjoiIzBmMTcyYSIsImljb25zIjpbeyJzcmMiOiJodHRwczovL3BsYWNlaG9sZC5jby8xOTJ4MTkyLzNiODJmNi8wMDAwMDA/dGV4dD1TIiwidHlwZSI6ImltYWdlL3BuZyIsInNpemVzIjoiMTkyeDE5MiJ9LHsic3JjIjoiaHR0cHM6Ly9wbGFjZWhvbGQuY28vNTEyeDUxMi8zYjgyZjYvMDAwMDAwP3RleHQ9UyIsInR5cGUiOiJpbWFnZS9wbmciLCJzaXplcyI6IjUxMng1MTIifV19">
+    
+    <!-- PWA Meta Tags for iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SysCore">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/3b82f6/000000?text=S">
+    <meta name="theme-color" content="#000000"> <!-- Black -->
+
+    <style>
+        /* Body background black, UI dark grey */
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #000000; /* Black */
+        }
+        .font-mono {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+        }
+
+        /* Syntax highlighting (no change) */
+        .token-keyword { color: #c586c0; } .token-function { color: #dcdcaa; }
+        .token-string { color: #ce9178; } .token-comment { color: #6a9955; }
+        .token-variable { color: #9cdcfe; } .token-number { color: #b5cea8; }
+        .token-default { color: #d4d4d4; } .token-error { color: #f44747; }
+        .token-prompt { color: #4ec9b0; } .token-info { color: #4ec9b0; }
+        .token-response { color: #d4d4d4; } .token-action { color: #dcdcaa; }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 6px; }
+
+        /* Input focus */
+        .form-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 8px #3b82f6;
+            outline: none;
+        }
+        
+        /* Glassmorphism - Updated for dark grey */
+        .glass {
+            background: rgba(15, 23, 42, 0.5); /* slate-900/50 */
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(30, 41, 59, 1); /* slate-800 */
+        }
+        
+        /* Blinking cursor */
+        .typing-cursor {
+            animation: blink 1s steps(1) infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Settings Toggle */
+        .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
+        
+        /* Shake animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.5s ease-in-out; }
+        
+        /* Terminal inline buttons */
+        .inline-btn {
+            background-color: #1e293b; /* slate-800 */
+            border: 1px solid #334155; /* slate-700 */
+            color: #94a3b8; /* slate-400 */
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin: 2px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .inline-btn:hover {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="text-gray-200 flex flex-col h-screen overflow-hidden">
+
+    <!-- Header Bar -->
+    <header class="glass shadow-lg p-3 flex items-center justify-between z-10">
+        <div class="flex items-center space-x-3">
+            <svg class="w-7 h-7 text-blue-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 3H15M9 21H15M3 9V15M21 9V15M8 8V16H16V8H8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 2V3M12 21V22M2 12H3M21 12H22M5.63604 5.63604L6.05025 6.05025M18.364 18.364L17.9497 17.9497M5.63604 18.364L6.05025 17.9497M18.364 5.63604L17.9497 6.05025" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h1 id="header-title" class="text-xl font-semibold text-white">Main</h1>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span class="text-sm text-blue-400">Online</span>
+            <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse" title="Status: Online"></div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto overflow-x-hidden p-2 sm:p-4">
+        
+        <!-- Page 1: Main (Terminal & Widgets) -->
+        <div id="page-main" class="flex flex-col gap-2 sm:gap-4 h-full">
+            <!-- Widgets Area -->
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                <!-- Widget 1: Crypto Wallet -->
+                <div id="asset-widget" class="flex-1 glass rounded-xl shadow-lg p-3 cursor-pointer hover:bg-slate-800/70 transition-colors">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="text-sm font-bold text-white">ASSET MONITOR</h2>
+                        <span class="text-xs text-green-400">LIVE</span>
+                    </div>
+                    <div class="text-2xl font-bold text-white" id="btc-balance">0.0000 BTC</div>
+                    <div class="text-lg text-gray-400" id="btc-value-usd">$0.00 USD</div>
+                </div>
+
+                <!-- Widget 2: Stock Market -->
+                <div id="market-widget" class="flex-1 glass rounded-xl shadow-lg p-3 cursor-pointer hover:bg-slate-800/70 transition-colors">
+                    <h2 class="text-sm font-bold text-white mb-2">MARKET WATCH</h2>
+                    <div class="text-xs space-y-1 font-mono" id="stock-list">
+                        <!-- Stock data will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terminal Output Area -->
+            <div id="terminal" class="font-mono flex-1 overflow-y-auto p-3 space-y-1 text-sm leading-tight glass rounded-xl shadow-lg min-h-[200px]">
+                <!-- Saved log will be loaded here -->
+            </div>
+
+            <!-- User Input Area (Initially hidden) -->
+            <div id="input-area" class="p-3 bg-slate-800/60 backdrop-blur-md border-t border-slate-700 hidden rounded-b-xl">
+                <div id="prompt" class="mb-2 token-prompt">[PROMPT]</div>
+                <div class="flex space-x-2">
+                    <input id="user-input" type="text" class="font-mono flex-1 bg-slate-700/50 border border-slate-600 rounded-md px-3 py-2 text-gray-200 form-input" placeholder="Enter value...">
+                    <button id="submit-input" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-md active:bg-blue-700 transition-colors">Confirm</button>
+                </div>
+            </div>
+
+            <!-- Initial Start Button (Initially visible) -->
+            <div id="start-button-container" class="p-4 bg-slate-800/60 backdrop-blur-md border-t border-slate-700 rounded-xl">
+                <button id="start-button" class="w-full bg-blue-600 text-white text-lg font-bold px-4 py-3 rounded-lg active:bg-blue-700 shadow-md hover:bg-blue-700 transition-colors">
+                    INITIALIZE
+                </button>
+            </div>
+        </div>
+
+        <!-- Page 2: Tools -->
+        <div id="page-tools" class="hidden flex flex-col gap-2 sm:gap-4 h-full">
+            <!-- Tool 1: Live Network Monitor -->
+            <div class="glass rounded-xl shadow-lg p-3 flex-1 min-h-[200px] flex flex-col">
+                <div class="flex justify-between items-center mb-2 border-b border-slate-700 pb-2">
+                    <h2 class="text-sm font-bold text-white">LIVE NETWORK MONITOR</h2>
+                    <button id="net-pause-btn" class="text-xs bg-blue-600/70 px-2 py-1 rounded">PAUSE</button>
+                </div>
+                <div class="flex mb-2">
+                    <input id="net-filter-input" type="text" class="font-mono flex-1 bg-slate-700/50 border border-slate-600 rounded-md px-3 py-1 text-xs text-gray-200 form-input" placeholder="Filter by protocol (e.g., TCP, DNS)...">
+                </div>
+                <div id="network-monitor" class="font-mono text-xs space-y-1 overflow-y-auto flex-1">
+                    <!-- Network traffic will be injected here -->
+                </div>
+            </div>
+            
+            <!-- Tool 2: File System Explorer -->
+            <div class="glass rounded-xl shadow-lg p-3 flex-1 min-h-[200px] flex flex-col">
+                <h2 class="text-sm font-bold text-white mb-2 border-b border-slate-700 pb-2">FILE SYSTEM EXPLORER</h2>
+                <div id="file-explorer" class="font-mono text-sm space-y-1 overflow-y-auto flex-1">
+                    <!-- File system will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 3: Settings -->
+        <div id="page-settings" class="hidden flex flex-col gap-2 sm:gap-4 h-full">
+            <div class="glass rounded-xl shadow-lg p-3">
+                <h2 class="text-sm font-bold text-white mb-4 border-b border-slate-700 pb-2">SETTINGS</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <label for="stealth-toggle" class="text-gray-200">Stealth Mode</label>
+                        <div class="relative inline-block w-11 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="stealth-toggle" id="stealth-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
+                            <label for="stealth-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label for="c2-server" class="text-gray-200">Endpoint</label>
+                        <input type="text" id="c2-server" value="185.12.33.1" class="font-mono bg-slate-700/50 border border-slate-600 rounded-md px-3 py-1 text-gray-200 w-1/2 form-input">
+                    </div>
+                    <button id="clear-cache-btn" class="w-full bg-blue-600 text-white font-bold px-4 py-2 rounded-md active:bg-blue-700 transition-colors">
+                        Purge Local Cache & Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Tab Bar -->
+    <nav class="glass shadow-lg flex justify-around p-2 z-10">
+        <button id="nav-main" class="nav-button flex-1 flex flex-col items-center p-2 rounded-lg text-blue-500">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+            <span class="text-xs font-medium">Main</span>
+        </button>
+        <button id="nav-tools" class="nav-button flex-1 flex flex-col items-center p-2 rounded-lg text-gray-400">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <span class="text-xs font-medium">Tools</span>
+        </button>
+        <button id="nav-settings" class="nav-button flex-1 flex flex-col items-center p-2 rounded-lg text-gray-400">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <span class="text-xs font-medium">Settings</span>
+        </button>
+    </nav>
+    
+    <!-- MODALS -->
+    
+    <!-- Passcode -->
+    <div id="passcode-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-4">
+        <h2 class="text-2xl font-semibold text-white mb-4">Authorization Required</h2>
+        <div id="passcode-display" class="w-full max-w-xs h-16 bg-slate-700/50 rounded-lg flex items-center justify-center text-4xl tracking-widest space-x-2 mb-6"></div>
+        <div class="grid grid-cols-3 gap-4 w-full max-w-xs">
+            <!-- Keypad -->
+            <button class="keypad-btn text-4xl font-light p-4 rounded-full bg-slate-700/50 active:bg-slate-600">1</button>
+            <button class="keypad-btn text-4xl font-light p-4 rounded-full bg-slate-700/50 active:bg-slate-600">2</button>
+            <button class="keypad-btn text-4xl font-light p-4 rounded-full bg-slate-700/50 active:bg-slate-600">3</button>
+            <button class="keypad-btn text-4xl font-light p-4 rounded-full bg-slate-700/50 active:bg-slate-600">4</button>
+            <button class="keypad-btn text-4xl font-light p-4 rounded-full bg-slate-700/50 active:bg-slate-600">5</button>
+            <button class="keypad-btn text-4xl font-light p-4 rounded-full bg-slate-700/50 active:bg-slate-600">6</button>
+            <button class="keypad-btn text-4xl font-light p-4 rounded-full bg-slate-700/50 active:bg-slate-600">7</button>
+            <button class="keypad-btn text-4xl font-light p-4 rounded-full bg-slate-700/50 active:bg-slate-600">8</button>
+            <button class="keypad-btn text-4xl font-light p-4 rounded-full bg-slate-700/50 active:bg-slate-600">9</button>
+            <button id="passcode-clear" class="text-lg font-medium p-4 rounded-full bg-slate-700/50 active:bg-slate-600">Clear</button>
+            <button class="keypad-btn text-4xl font-light p-4 rounded-full bg-slate-700/50 active:bg-slate-600">0</button>
+            <button id="passcode-enter" class="text-lg font-medium p-4 rounded-full bg-blue-600 active:bg-blue-700">Enter</button>
+        </div>
+    </div>
+    
+    <!-- Biometric Scan -->
+    <div id="biometric-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-4">
+        <h2 class="text-2xl font-semibold text-white mb-8">Biometric Verification</h2>
+        <div id="biometric-scanner" class="relative w-48 h-48 rounded-full flex items-center justify-center cursor-pointer">
+            <svg class="w-48 h-48 text-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- ... fingerprint paths ... -->
+                <path d="M12 3C12 3 5 4 5 12C5 20 12 21 12 21C12 21 19 20 19 12C19 4 12 3 12 3Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 12C13.6569 12 15 10.6569 15 9C15 7.34315 13.6569 6 12 6C10.3431 6 9 7.34315 9 9C9 10.6569 10.3431 12 12 12Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 12C12 12 10 13 10 15C10 17 12 18 12 18C12 18 14 17 14 15C14 13 12 12 12 12Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5.5 16C5.5 16 8.5 15.5 8.5 12.5C8.5 9.5 5 9 5 9" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M18.5 16C18.5 16 15.5 15.5 15.5 12.5C15.5 9.5 19 9 19 9" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 20C9 20 10.5 19 10.5 17C10.5 15 9 14 9 14" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M15 20C15 20 13.5 19 13.5 17C13.5 15 15 14 15 14" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div id="biometric-progress" class="absolute inset-0 rounded-full bg-blue-500/50 scale-0 transition-transform duration-300"></div>
+        </div>
+        <p id="biometric-status" class="text-lg text-gray-300 mt-8">Press and hold to scan</p>
+    </div>
+    
+    <!-- Wallet Modal -->
+    <div id="wallet-modal" class="hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-md flex flex-col p-4">
+        <header class="flex-shrink-0 flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-semibold text-white">Asset Wallet</h2>
+            <button id="wallet-close-btn" class="text-gray-400 hover:text-white">
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+            </button>
+        </header>
+        <div class="flex-1 overflow-y-auto">
+            <div class="glass rounded-xl p-4 mb-4">
+                <div class="text-sm text-gray-400">Total Balance</div>
+                <div class="text-3xl font-bold text-white" id="wallet-usd-value">$0.00 USD</div>
+                <div class="text-lg text-gray-300" id="wallet-btc-balance">0.0000 BTC</div>
+            </div>
+            
+            <div id="wallet-message" class="hidden text-center p-3 mb-4 rounded-lg"></div>
+            
+            <div class="glass rounded-xl p-4 mb-4">
+                <h3 class="text-lg font-semibold text-white mb-3">Simulate Transaction</h3>
+                <div class="space-y-3">
+                    <input id="wallet-amount-input" type="number" class="font-mono w-full bg-slate-700/50 border border-slate-600 rounded-md px-3 py-2 text-gray-200 form-input" placeholder="Amount in BTC">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="wallet-buy-btn" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg active:bg-green-700">BUY</button>
+                        <button id="wallet-sell-btn" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg active:bg-red-700">SELL</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Market Modal -->
+    <div id="market-modal" class="hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-md flex flex-col p-4">
+        <header class="flex-shrink-0 flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-semibold text-white">Market Watch</h2>
+            <button id="market-close-btn" class="text-gray-400 hover:text-white">
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+            </button>
+        </header>
+        <div class="flex-shrink-0 flex space-x-2 overflow-x-auto pb-3 mb-3 border-b border-slate-700" id="market-tabs">
+            <!-- Stock tabs will be injected here -->
+        </div>
+        <div class="flex-1 glass rounded-xl p-2">
+            <svg id="market-chart-svg" class="w-full h-full" viewBox="0 0 300 150">
+                <path id="market-chart-path" d="M0,150 L300,0" stroke="#3b82f6" fill="none" stroke-width="2"/>
+            </svg>
+        </div>
+    </div>
+
+    <script>
+        // --- PWA Service Worker Registration (inlined) ---
+        if ('serviceWorker' in navigator) {
+            const swContent = `
+                const CACHE_NAME = 'syscore-cache-v6';
+                const urlsToCache = ['./', 'https://cdn.tailwindcss.com/'];
+                self.addEventListener('install', event => {
+                    event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
+                });
+                self.addEventListener('fetch', event => {
+                    event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
+                });
+            `;
+            const swBlob = new Blob([swContent], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(swBlob);
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register(swUrl)
+                    .then(reg => console.log('ServiceWorker registered.'))
+                    .catch(err => console.log('ServiceWorker registration failed: ', err));
+            });
+        }
+
+        // --- Application Logic ---
+        
+        // State
+        const APP_STATE_KEY = 'sysCoreStateV6';
+        let isRunning = false;
+        let isPaused = false;
+        let mainLoopRunning = false;
+        let pauseTimeout;
+        let currentPromptContext = null;
+        let currentLineElement = null;
+        let currentPasscode = "";
+        let biometricTimer;
+        let saveTimeout;
+
+        // Config
+        const fakeBtcPrice = 65432.10;
+        const fakeStocks = [
+            { ticker: 'NVDA', price: 1205.30 }, { ticker: 'META', price: 480.17 },
+            { ticker: 'TSLA', price: 175.44 }, { ticker: 'GOOGL', price: 177.89 },
+            { ticker: 'CYBR', price: 245.12 }
+        ];
+        let btcBalance = 7.6418; // Default start (~$500k)
+        
+        // Page Elements
+        const pages = { main: document.getElementById('page-main'), tools: document.getElementById('page-tools'), settings: document.getElementById('page-settings') };
+        const navButtons = { main: document.getElementById('nav-main'), tools: document.getElementById('nav-tools'), settings: document.getElementById('nav-settings') };
+        const headerTitle = document.getElementById('header-title');
+        const terminal = document.getElementById('terminal');
+        const inputArea = document.getElementById('input-area');
+        const promptElement = document.getElementById('prompt');
+        const userInput = document.getElementById('user-input');
+        const submitInput = document.getElementById('submit-input');
+        const startButton = document.getElementById('start-button');
+        const startButtonContainer = document.getElementById('start-button-container');
+        
+        // Widget Elements
+        const assetWidget = document.getElementById('asset-widget');
+        const marketWidget = document.getElementById('market-widget');
+        const btcBalanceEl = document.getElementById('btc-balance');
+        const btcValueUsdEl = document.getElementById('btc-value-usd');
+        const stockListEl = document.getElementById('stock-list');
+        
+        // Tools Elements
+        const networkMonitorEl = document.getElementById('network-monitor');
+        const netPauseBtn = document.getElementById('net-pause-btn');
+        const netFilterInput = document.getElementById('net-filter-input');
+        const fileExplorerEl = document.getElementById('file-explorer');
+        const clearCacheBtn = document.getElementById('clear-cache-btn');
+        let netMonitorPaused = false;
+        let netMonitorInterval;
+        
+        // Passcode Modal
+        const passcodeModal = document.getElementById('passcode-modal');
+        const passcodeDisplay = document.getElementById('passcode-display');
+        const passcodeClear = document.getElementById('passcode-clear');
+        const passcodeEnter = document.getElementById('passcode-enter');
+        const keypadBtns = document.querySelectorAll('.keypad-btn');
+        
+        // Biometric Modal
+        const biometricModal = document.getElementById('biometric-modal');
+        const biometricScanner = document.getElementById('biometric-scanner');
+        const biometricProgress = document.getElementById('biometric-progress');
+        const biometricStatus = document.getElementById('biometric-status');
+        
+        // Wallet Modal
+        const walletModal = document.getElementById('wallet-modal');
+        const walletCloseBtn = document.getElementById('wallet-close-btn');
+        const walletUsdValue = document.getElementById('wallet-usd-value');
+        const walletBtcBalance = document.getElementById('wallet-btc-balance');
+        const walletAmountInput = document.getElementById('wallet-amount-input');
+        const walletBuyBtn = document.getElementById('wallet-buy-btn');
+        const walletSellBtn = document.getElementById('wallet-sell-btn');
+        const walletMessage = document.getElementById('wallet-message');
+        
+        // Market Modal
+        const marketModal = document.getElementById('market-modal');
+        const marketCloseBtn = document.getElementById('market-close-btn');
+        const marketTabs = document.getElementById('market-tabs');
+        const marketChartPath = document.getElementById('market-chart-path');
+        
+        // File System Data
+        const fileSystem = {
+            'C:': { type: 'folder', children: { 'Users': { type: 'folder', children: { 'Admin': { type: 'folder', children: { 'wallet.dat': { type: 'file', size: '5.2MB' }, 'creds.txt': { type: 'file', size: '1.2KB' } } } }, 'Windows': { type: 'folder', children: { 'System32': { type: 'folder', children: { 'kernel32.dll': { type: 'file', size: '1.8MB' } } } }, 'program.log': { type: 'file', size: '12.9MB' } } }
+        };
+
+        const util = {
+            random: (arr) => arr[Math.floor(Math.random() * arr.length)],
+            randomString: (len) => (Math.random() + 1).toString(36).substring(2, len + 2),
+            sleep: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
+            log: (content) => {
+                const line = document.createElement('div');
+                line.innerHTML = content;
+                terminal.appendChild(line);
+                terminal.scrollTop = terminal.scrollHeight;
+                debouncedSaveState();
+                return line;
+            },
+            clearInput: () => {
+                inputArea.style.display = 'none';
+                userInput.value = '';
+            }
+        };
+
+        // --- State Management ---
+        function saveState() {
+            const state = {
+                btcBalance: btcBalance,
+                terminalLog: terminal.innerHTML,
+                isRunning: isRunning
+            };
+            localStorage.setItem(APP_STATE_KEY, JSON.stringify(state));
+        }
+
+        function debouncedSaveState() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveState, 1000);
+        }
+
+        function loadState() {
+            const savedState = localStorage.getItem(APP_STATE_KEY);
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                btcBalance = state.btcBalance || 7.6418;
+                terminal.innerHTML = state.terminalLog || createDefaultTerminalLog();
+                isRunning = state.isRunning || false;
+                
+                if (isRunning) {
+                    startButtonContainer.style.display = 'none';
+                    showPage('main'); // This will start loops
+                }
+            } else {
+                terminal.innerHTML = createDefaultTerminalLog();
+            }
+            updateAssetMonitor();
+            updateStockMarket();
+        }
+
+        function createDefaultTerminalLog() {
+            return `
+                <div class="text-gray-500">[core] System boot... OK</div>
+                <div class="text-gray-500">[net] Verifying secure connection...</div>
+                <div class="text-green-500">[core] Privileges escalated.</div>
+                <div>[System] Ready. Awaiting commands...</div>
+                <div class="text-gray-600">------------------------------------</div>
+            `;
+        }
+        
+        clearCacheBtn.addEventListener('click', () => {
+            localStorage.removeItem(APP_STATE_KEY);
+            window.location.reload();
+        });
+
+
+        // --- Page Navigation ---
+        function showPage(pageId) {
+            Object.values(pages).forEach(page => page.style.display = 'none');
+            if (pages[pageId]) pages[pageId].style.display = 'flex';
+
+            const titles = { main: 'Main', tools: 'Tools', settings: 'Settings' };
+            headerTitle.textContent = titles[pageId] || 'Main';
+
+            Object.values(navButtons).forEach(btn => {
+                btn.classList.remove('text-blue-500'); btn.classList.add('text-gray-400');
+            });
+            if (navButtons[pageId]) {
+                navButtons[pageId].classList.add('text-blue-500'); navButtons[pageId].classList.remove('text-gray-400');
+            }
+
+            // Stop/Start loops based on page
+            if (pageId === 'main' && isRunning && !mainLoopRunning) {
+                mainSimulationLoop();
+                scheduleNextPause();
+            } else if (pageId !== 'main') {
+                mainLoopRunning = false;
+                clearTimeout(pauseTimeout);
+            }
+            if (pageId === 'tools') startToolSimulations();
+            else stopToolSimulations();
+        }
+        
+        navButtons.main.addEventListener('click', () => showPage('main'));
+        navButtons.tools.addEventListener('click', () => showPage('tools'));
+        navButtons.settings.addEventListener('click', () => showPage('settings'));
+
+        // --- Simulation Control ---
+        function startToolSimulations() {
+            stopToolSimulations();
+            netMonitorInterval = setInterval(updateNetworkMonitor, 500);
+            renderFileSystem();
+        }
+        function stopToolSimulations() {
+            clearInterval(netMonitorInterval);
+        }
+        
+        function restartMainLoop() {
+            isPaused = false;
+            mainSimulationLoop();
+            scheduleNextPause();
+            saveState(); // Save immediately after an interaction
+        }
+        
+        // --- Fake Code Generation ---
+        const keywords = ['const', 'let', 'async', 'await', 'if', 'else', 'return', 'import', 'new', 'try', 'catch', 'while(true)'];
+        const functions = ['initModule', 'scanPorts', 'encryptData', 'sendBeacon', 'hookProcess', 'clearLogs', 'findCredentials', 'connectToEndpoint', 'queryData'];
+        const variables = ['payload', 'targetIP', 'config', 'socket', 'isValid', 'response', 'bytesSent', 'key', 'hash', 'adminAccess', 'creds'];
+        const strings = ['C:\\Users\\Admin\\creds.txt', 'config.json', 'user_data.bin', 'kernel32.dll', '[INFO]', '[WARN]', '0x${util.randomString(8)}', 'ACCESS_DENIED'];
+        
+        function createFakeCodeLine() {
+            const type = Math.random();
+            let line = '';
+            if (type < 0.15) line = `<span class="token-comment">// Searching for active process hooks...</span>`;
+            else if (type < 0.3) line = `<span class="token-variable">${util.random(variables)}</span> = <span class="token-keyword">await</span> <span class="token-function">${util.random(functions)}</span>(<span class="token-string">"${util.random(strings)}"</span>);`;
+            else if (type < 0.5) line = `<span class="token-keyword">const</span> <span class="token-variable">${util.random(variables)}_${util.randomString(3)}</span> = <span class="token-number">${(Math.random() * 50).toFixed(6)}</span>;`;
+            else if (type < 0.7) line = `<span class="token-keyword">if</span> (<span class="token-variable">data.size</span> > <span class="token-number">1024</span>) { <span class="token-function">encryptData</span>(data); }`;
+            else if (type < 0.8) line = `<span class="token-error">[ERR!]</span> <span class="token-default">Connection timeout to endpoint. Retrying...</span>`;
+            else if (type < 0.9) line = `<span class="token-keyword">import</span> { hook } <span class="token-keyword">from</span> <span class="token-string">'./core/runtime.js'</span>;`;
+            else line = `<span class="token-default">[OK] Packet ${util.randomString(4)}...${util.randomString(4)} sent.</span>`;
+            return '&nbsp;&nbsp;'.repeat(Math.floor(Math.random() * 3)) + line;
+        }
+
+        // --- Variable-Speed Simulation Loop ---
+        async function typewriter(lineElement, text, speed) {
+            let cursor = '<span class="typing-cursor">_</span>';
+            lineElement.innerHTML = text.substring(0, 1) + cursor;
+            for (let i = 1; i < text.length; i++) {
+                if (isPaused) {
+                    lineElement.innerHTML = text; // Finish line
+                    return;
+                }
+                await util.sleep(speed + Math.random() * speed);
+                lineElement.innerHTML = text.substring(0, i + 1) + cursor;
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+            lineElement.innerHTML = text; // Remove cursor
+        }
+
+        async function mainSimulationLoop() {
+            mainLoopRunning = true;
+            while (mainLoopRunning && isRunning && !isPaused) {
+                if (pages.main.style.display === 'none') { mainLoopRunning = false; return; }
+                if (terminal.children.length > 200) { terminal.removeChild(terminal.firstElementChild); }
+
+                const lineText = createFakeCodeLine();
+                const lineElement = util.log(''); // Create empty line
+                currentLineElement = lineElement;
+
+                const action = Math.random();
+                if (action < 0.3) await typewriter(lineElement, lineText, 50); // Slow
+                else if (action < 0.7) await typewriter(lineElement, lineText, 10); // Fast
+                else lineElement.innerHTML = lineText; // Instant
+
+                if (action > 0.9) await util.sleep(Math.random() * 1000 + 500); // Pause
+                else await util.sleep(Math.random() * 50 + 10);
+            }
+            mainLoopRunning = false;
+        }
+
+
+        function scheduleNextPause() {
+            if (!isRunning || pages.main.style.display === 'none') return;
+            clearTimeout(pauseTimeout);
+            const delay = Math.random() * 8000 + 7000;
+            pauseTimeout = setTimeout(pauseForInput, delay);
+        }
+
+        // --- Mini-Moments & Interactivity ---
+        async function showProgressBar(text) {
+            util.log(`<span class="token-info">[task] ${text}...</span>`);
+            let progress = 0;
+            const barLength = 20;
+            const progressBar = util.log('');
+            while (progress <= barLength) {
+                const filled = '█'.repeat(progress);
+                const empty = '░'.repeat(barLength - progress);
+                const percent = Math.floor((progress / barLength) * 100);
+                progressBar.innerHTML = `<span class="token-default">[${filled}${empty}] ${percent}%</span>`;
+                terminal.scrollTop = terminal.scrollHeight;
+                progress++;
+                await util.sleep(Math.random() * 100 + 50);
+            }
+            util.log(`<span class="token-info">[task] Complete.</span>`);
+        }
+        
+        async function pauseForInput() {
+            isPaused = true;
+            if (currentLineElement) currentLineElement.innerHTML = currentLineElement.innerHTML.replace(/<span class="typing-cursor">_<\/span>/, '');
+            
+            const pauseTypes = ['prompt', 'filesystem', 'network', 'options', 'passcode', 'biometric'];
+            const type = util.random(pauseTypes);
+            let promptText = '';
+
+            switch (type) {
+                case 'filesystem':
+                    util.log('<span class="token-info">[fs] Anomaly detected: `creds.txt` accessed.</span>');
+                    promptText = `[ACTION] Quarantine file 'creds.txt'? (y/n)`;
+                    currentPromptContext = promptText;
+                    inputArea.style.display = 'block';
+                    setTimeout(() => userInput.focus(), 100);
+                    break;
+                case 'network':
+                    util.log('<span class="token-info">[net] New endpoint discovered: 203.0.113.1</span>');
+                    promptText = `[INPUT] Enter port to scan (e.g., 22, 443, 8080):`;
+                    currentPromptContext = promptText;
+                    inputArea.style.display = 'block';
+                    setTimeout(() => userInput.focus(), 100);
+                    break;
+                case 'options': // New button prompt
+                    util.log('<span class="token-info">[sec] Hostile process detected. Select evasion strategy:</span>');
+                    util.log(`
+                        <button class="inline-btn" data-option="stealth">Stealth (Hook & Evade)</button>
+                        <button class="inline-btn" data-option="aggressive">Aggressive (Terminate & Purge)</button>
+                        <button class="inline-btn" data-option="bypass">Bypass (CreateSilo)</button>
+                    `);
+                    break;
+                case 'passcode':
+                    util.log('<span class="token-info">[sec] Security partition requires authentication...</span>');
+                    updatePasscodeDisplay();
+                    passcodeModal.style.display = 'flex';
+                    break;
+                case 'biometric':
+                    util.log('<span class="token-info">[sec] Biometric kernel lock engaged...</span>');
+                    biometricStatus.textContent = "Press and hold to scan";
+                    biometricProgress.style.transform = 'scale(0)';
+                    biometricModal.style.display = 'flex';
+                    break;
+                default: // 'prompt'
+                    promptText = `[WARN] Unhandled exception at 0x${util.randomString(8)}. Continue? (y/n)`;
+                    currentPromptContext = promptText;
+                    inputArea.style.display = 'block';
+                    setTimeout(() => userInput.focus(), 100);
+                    break;
+            }
+        }
+        
+        // --- Input Handlers ---
+        
+        // Text Input
+        submitInput.addEventListener('click', handleTextInput);
+        userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleTextInput(); });
+        
+        async function handleTextInput() {
+            if (!isPaused) return;
+            const input = userInput.value || '[null]';
+            util.clearInput();
+            util.log(`<span class="token-prompt">${currentPromptContext}</span>`);
+            util.log(`&gt; <span class="token-response">${input}</span>`);
+            
+            let response = '...Acknowledged. Resuming operations...';
+            if (input.toLowerCase() === 'y') response = '...Task confirmed. Executing...';
+            else if (input.toLowerCase() === 'n') response = '...Task aborted. Continuing...';
+            
+            util.log(`<span class="token-comment">${response}</span>`);
+            restartMainLoop();
+        }
+        
+        // Terminal Button Input
+        terminal.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('inline-btn')) {
+                const option = e.target.dataset.option;
+                // Disable all buttons in that group
+                e.target.parentElement.querySelectorAll('.inline-btn').forEach(btn => btn.disabled = true);
+                
+                util.log(`&gt; <span class="token-response">[Selection: ${option}]</span>`);
+                await showProgressBar(`Executing '${option}' strategy`);
+                util.log(`<span class="token-comment">...Strategy applied. Resuming main thread.</span>`);
+                restartMainLoop();
+            }
+        });
+        
+        // Passcode Input
+        keypadBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (currentPasscode.length < 6) {
+                    currentPasscode += btn.textContent;
+                    updatePasscodeDisplay();
+                }
+            });
+        });
+        passcodeClear.addEventListener('click', () => { currentPasscode = ""; updatePasscodeDisplay(); });
+        passcodeEnter.addEventListener('click', () => {
+            if (currentPasscode.length > 0) {
+                passcodeModal.style.display = 'none';
+                util.log(`&gt; <span class="token-response">[Passcode Entry: ${'*'.repeat(currentPasscode.length)}]</span>`);
+                util.log('<span class="token-info">[sec] Authorization accepted.</span>');
+                currentPasscode = "";
+                restartMainLoop();
+            } else {
+                passcodeDisplay.classList.add('shake');
+                setTimeout(() => passcodeDisplay.classList.remove('shake'), 500);
+            }
+        });
+        function updatePasscodeDisplay() {
+            let dots = "";
+            for (let i = 0; i < 6; i++) {
+                dots += `<div class="w-4 h-4 rounded-full ${i < currentPasscode.length ? 'bg-blue-400' : 'bg-slate-600'}"></div>`;
+            }
+            passcodeDisplay.innerHTML = dots;
+        }
+
+        // Biometric Input
+        biometricScanner.addEventListener('mousedown', startBiometricScan);
+        biometricScanner.addEventListener('touchstart', (e) => { e.preventDefault(); startBiometricScan(); });
+        biometricScanner.addEventListener('mouseup', stopBiometricScan);
+        biometricScanner.addEventListener('touchend', stopBiometricScan);
+
+        function startBiometricScan() {
+            biometricStatus.textContent = "Scanning...";
+            biometricProgress.style.transitionDuration = '2000ms';
+            biometricProgress.style.transform = 'scale(1)';
+            biometricTimer = setTimeout(() => {
+                biometricModal.style.display = 'none';
+                util.log(`&gt; <span class="token-response">[Biometric Scan Verified]</span>`);
+                util.log('<span class="token-info">[sec] Kernel lock disengaged.</span>');
+                restartMainLoop();
+            }, 2000);
+        }
+        function stopBiometricScan() {
+            clearTimeout(biometricTimer);
+            if (biometricModal.style.display === 'flex') {
+                biometricStatus.textContent = "Failed. Try again.";
+                biometricProgress.style.transitionDuration = '100ms';
+                biometricProgress.style.transform = 'scale(0)';
+            }
+        }
+        
+        // --- Widget Update Functions ---
+        function updateAssetMonitor() {
+            const usdValue = btcBalance * fakeBtcPrice;
+            btcBalanceEl.textContent = `${btcBalance.toFixed(8)} BTC`;
+            btcValueUsdEl.textContent = `$${usdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+        
+        function updateStockMarket() {
+            let html = '';
+            fakeStocks.slice(0, 3).forEach(stock => {
+                const change = Math.random() * 20 - 10;
+                stock.price += change;
+                if (stock.price < 50) stock.price = 100;
+                const isPositive = change >= 0;
+                const colorClass = isPositive ? 'text-green-400' : 'text-red-400';
+                const sign = isPositive ? '+' : '';
+                html += `<div class="flex justify-between"><span>${stock.ticker}</span><span>$${stock.price.toFixed(2)}</span><span class="${colorClass}">${sign}${change.toFixed(2)}</span></div>`;
+            });
+            stockListEl.innerHTML = html;
+        }
+
+        // --- Tool: Network Monitor ---
+        function updateNetworkMonitor() {
+            if (netMonitorPaused) return;
+            const protocols = ['TCP', 'UDP', 'HTTPS', 'DNS', 'SSH', 'FTP'];
+            const ips = ['1.1.1.1', '10.0.0.1', '192.168.1.1', '8.8.8.8', '172.217.14.228'];
+            const actions = ['IN', 'OUT'];
+            const protocol = util.random(protocols);
+            
+            const filter = netFilterInput.value.trim().toUpperCase();
+            if (filter && !protocol.includes(filter)) return;
+            
+            const line = document.createElement('div');
+            const action = util.random(actions);
+            const color = action === 'IN' ? 'text-green-400' : 'text-blue-400';
+            line.innerHTML = `<span class="${color}">[${action}]</span> ${protocol} from ${util.random(ips)}:${Math.floor(Math.random() * 65535)} to ${util.random(ips)}:${Math.floor(Math.random() * 65535)} <span class="text-gray-500">(${Math.floor(Math.random() * 1024)} bytes)</span>`;
+            
+            networkMonitorEl.appendChild(line);
+            if (networkMonitorEl.children.length > 50) networkMonitorEl.removeChild(networkMonitorEl.firstElementChild);
+            networkMonitorEl.scrollTop = networkMonitorEl.scrollHeight;
+        }
+        netPauseBtn.addEventListener('click', () => {
+            netMonitorPaused = !netMonitorPaused;
+            netPauseBtn.textContent = netMonitorPaused ? 'RESUME' : 'PAUSE';
+            netPauseBtn.classList.toggle('bg-blue-600/70'); netPauseBtn.classList.toggle('bg-green-600/70');
+        });
+
+        // --- Tool: File System Explorer ---
+        function renderFileSystem() {
+            fileExplorerEl.innerHTML = '';
+            fileExplorerEl.appendChild(createFileTree(fileSystem, 0));
+        }
+        function createFileTree(node, indent) {
+            const container = document.createElement('div');
+            container.style.marginLeft = `${indent * 20}px`;
+            Object.keys(node).forEach(key => {
+                const item = node[key];
+                const element = document.createElement('div');
+                element.className = 'flex items-center space-x-2 cursor-pointer hover:bg-white/10 p-1 rounded';
+                let icon = '';
+                if (item.type === 'folder') {
+                    icon = '<svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>';
+                    element.innerHTML = `${icon}<span>${key}</span>`;
+                    element.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const childrenContainer = element.nextSibling;
+                        if (childrenContainer) childrenContainer.style.display = childrenContainer.style.display === 'none' ? 'block' : 'none';
+                    });
+                    container.appendChild(element);
+                    const childrenContainer = createFileTree(item.children, 0);
+                    childrenContainer.style.display = 'none';
+                    container.appendChild(childrenContainer);
+                } else {
+                    icon = '<svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clip-rule="evenodd"></path></svg>';
+                    element.innerHTML = `${icon}<span>${key}</span> <span class="text-xs text-gray-500">${item.size}</span>`;
+                    element.addEventListener('click', (e) => { e.stopPropagation(); handleFileClick(key); });
+                    container.appendChild(element);
+                }
+            });
+            return container;
+        }
+        function handleFileClick(fileName) {
+            const scanLine = document.createElement('div');
+            scanLine.className = 'text-xs text-yellow-400 p-1';
+            scanLine.textContent = `[scan] Analyzing ${fileName}...`;
+            fileExplorerEl.prepend(scanLine);
+            setTimeout(() => {
+                if (fileName === 'wallet.dat') scanLine.textContent = `[scan] ${fileName} is encrypted (AES-256).`;
+                else if (fileName === 'creds.txt') scanLine.textContent = `[scan] ${fileName} contains 1 password hash.`;
+                else scanLine.textContent = `[scan] ${fileName} analysis complete. No threats.`;
+            }, 1500);
+            setTimeout(() => scanLine.remove(), 4000);
+        }
+        
+        // --- Wallet Modal Logic ---
+        assetWidget.addEventListener('click', () => {
+            walletUsdValue.textContent = btcValueUsdEl.textContent;
+            walletBtcBalance.textContent = btcBalanceEl.textContent;
+            walletMessage.style.display = 'none';
+            walletAmountInput.value = '';
+            walletModal.style.display = 'flex';
+            pauseSimulationHard();
+        });
+        walletCloseBtn.addEventListener('click', () => {
+            walletModal.style.display = 'none';
+            resumeSimulationHard();
+        });
+        walletBuyBtn.addEventListener('click', () => handleTransaction('buy'));
+        walletSellBtn.addEventListener('click', () => handleTransaction('sell'));
+
+        function handleTransaction(type) {
+            const amount = parseFloat(walletAmountInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                showWalletMessage('Invalid amount.', 'red');
+                return;
+            }
+            if (type === 'sell' && amount > btcBalance) {
+                showWalletMessage('Insufficient funds.', 'red');
+                return;
+            }
+            
+            showWalletMessage('Transaction pending...', 'yellow');
+            
+            setTimeout(() => {
+                if (type === 'buy') btcBalance += amount;
+                else btcBalance -= amount;
+                
+                updateAssetMonitor(); // Update main widget
+                walletUsdValue.textContent = btcValueUsdEl.textContent;
+                walletBtcBalance.textContent = btcBalanceEl.textContent;
+                showWalletMessage('Transaction successful.', 'green');
+                walletAmountInput.value = '';
+                saveState(); // Save new balance
+            }, 1500);
+        }
+        
+        function showWalletMessage(msg, color) {
+            walletMessage.textContent = msg;
+            walletMessage.className = `text-center p-3 mb-4 rounded-lg bg-${color}-500/20 text-${color}-400`;
+            walletMessage.style.display = 'block';
+        }
+        
+        // --- Market Modal Logic ---
+        marketWidget.addEventListener('click', () => {
+            renderMarketTabs();
+            generateFakeChartPath('NVDA'); // Load default
+            marketModal.style.display = 'flex';
+            pauseSimulationHard();
+        });
+        marketCloseBtn.addEventListener('click', () => {
+            marketModal.style.display = 'none';
+            resumeSimulationHard();
+        });
+        
+        function renderMarketTabs() {
+            marketTabs.innerHTML = '';
+            fakeStocks.forEach((stock, index) => {
+                const tab = document.createElement('button');
+                tab.textContent = stock.ticker;
+                tab.className = `market-tab-btn px-4 py-2 rounded-lg font-medium text-sm ${index === 0 ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-gray-400'}`;
+                tab.dataset.ticker = stock.ticker;
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.market-tab-btn').forEach(btn => {
+                        btn.classList.remove('bg-blue-600', 'text-white');
+                        btn.classList.add('bg-slate-700/50', 'text-gray-400');
+                    });
+                    tab.classList.add('bg-blue-600', 'text-white');
+                    tab.classList.remove('bg-slate-700/50', 'text-gray-400');
+                    generateFakeChartPath(stock.ticker);
+                });
+                marketTabs.appendChild(tab);
+            });
+        }
+        
+        function generateFakeChartPath(ticker) {
+            let d = "M0,75 ";
+            for (let i = 1; i <= 300; i += 10) {
+                const y = 75 + (Math.random() - 0.5) * (i / 2); // Simple random walk
+                d += `L${i},${Math.max(10, Math.min(140, y))} `;
+            }
+            marketChartPath.setAttribute('d', d);
+        }
+        
+        // Hard pause/resume for modals
+        function pauseSimulationHard() {
+            mainLoopRunning = false;
+            clearTimeout(pauseTimeout);
+            stopToolSimulations();
+        }
+        function resumeSimulationHard() {
+            showPage(headerTitle.textContent.toLowerCase()); // Resume whatever page was active
+        }
+
+
+        // --- Event Listeners ---
+        startButton.addEventListener('click', () => {
+            startButtonContainer.style.display = 'none';
+            isRunning = true;
+            saveState(); // Save that we've started
+            showPage('main');
+        });
+        
+        // --- Initial Load ---
+        loadState();
+        
+    </script>
+</body>
+</html>
+
+
