@@ -1,80 +1,189 @@
-body {
-    background-color: #121212;
-    color: #ffffff;
-    font-family: monospace;
+/* --- Global Reset & Fonts --- */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600;700&display=swap');
+
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden; /* Prevents mobile scroll/bounce */
+}
+
+body {
+    background-color: #0A0A0A; /* Deep black background */
+    color: #F0F0F0; /* High-contrast off-white text */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     display: flex;
     flex-direction: column;
     height: 100vh;
 }
 
+/* --- Wallet Header --- */
 #wallet {
-    background-color: #1e1e1e;
-    padding: 10px;
-    text-align: center;
+    background-color: #141417;
+    padding: 15px 20px;
     cursor: pointer;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid #2a2a2e;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0; /* Prevent header from shrinking */
 }
 
+#wallet:hover, #wallet.active {
+    background-color: #1a1a1e;
+}
+
+#wallet-caret {
+    font-size: 14px;
+    color: #888;
+    transition: transform 0.3s ease;
+}
+
+#wallet.active #wallet-caret {
+    transform: rotate(180deg);
+}
+
+/* --- Stocks Panel --- */
 #stocks-list {
-    background-color: #1e1e1e;
-    padding: 10px;
+    background-color: #141417;
+    padding: 20px;
     display: none;
     overflow-y: auto;
-    max-height: 200px;
+    max-height: 40vh; /* Responsive height */
+    border-bottom: 1px solid #2a2a2e;
 }
 
 .stock-item {
+    display: grid;
+    grid-template-columns: 1fr auto; /* Details on left, buttons on right */
+    gap: 15px;
+    align-items: center;
+    padding: 15px;
+    background-color: #1a1a1e;
+    border-radius: 8px;
+    border: 1px solid #2a2a2e;
     margin-bottom: 10px;
-    padding: 5px;
-    border: 1px solid #333;
-    border-radius: 4px;
+}
+
+.stock-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stock-symbol {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.stock-price {
+    font-size: 16px;
+    color: #eee;
+}
+
+.stock-meta {
+    font-size: 12px;
+    color: #888;
+}
+
+.stock-buttons {
+    display: flex;
+    gap: 8px; /* Side-by-side buttons */
 }
 
 .stock-item button {
-    background-color: #007bff;
+    background-color: #3369FF; /* Subtle tech blue */
     color: #fff;
     border: none;
-    padding: 5px 10px;
-    margin: 0 5px;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
 .stock-item button:hover {
-    background-color: #0056b3;
+    background-color: #2956CC;
 }
 
+.stock-item button.sell {
+    background-color: #333;
+    color: #ccc;
+}
+
+.stock-item button.sell:hover {
+    background-color: #444;
+}
+
+/* --- Code Editor --- */
 #editor-container {
-    flex: 1;
-    padding: 10px;
+    flex: 1; /* Takes up all remaining space */
+    padding: 0; /* No padding, let editor fill */
+    min-height: 0; /* Fix flexbox overflow issue */
 }
 
 .CodeMirror {
-    height: 100%;
-    background-color: #1e1e1e;
-    color: #fff;
-    border: 1px solid #333;
+    height: 100% !important; /* Force CodeMirror to fill container */
+    background-color: #0A0A0A; /* Match body background */
+    color: #F0F0F0;
+    border: none;
+    font-family: 'Fira Code', 'Source Code Pro', monospace;
+    font-size: 14px;
 }
 
+/* --- Prompt Modal --- */
 #prompts {
-    background-color: #1e1e1e;
-    padding: 10px;
-    display: none;
-    text-align: center;
+    display: block; /* Keep in DOM for transition */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #141417;
+    padding: 20px;
+    padding-bottom: 40px; /* Safe area for mobile */
+    border-top: 1px solid #2a2a2e;
+    z-index: 100;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+#prompts.show {
+    transform: translateY(0);
+}
+
+#prompts p {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    color: #999;
+    text-align: left;
 }
 
 #prompts button {
-    background-color: #007bff;
+    background-color: #3369FF;
     color: #fff;
     border: none;
-    padding: 10px;
-    margin: 5px;
+    padding: 15px;
+    margin-top: 10px;
     cursor: pointer;
-    width: 80%;
+    width: 100%;
     display: block;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    text-align: left;
+    transition: background-color 0.2s ease;
 }
 
 #prompts button:hover {
-    background-color: #0056b3;
+    background-color: #2956CC;
 }
