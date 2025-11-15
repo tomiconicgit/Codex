@@ -1,3 +1,4 @@
+// --- Game State ---
 let cash = 10000;
 let btcPrice = 100000; // Default
 let editor;
@@ -11,47 +12,54 @@ let stocks = [
     {symbol: 'META', price: 500, owned: 0},
     {symbol: 'NFLX', price: 650, owned: 0}
 ];
+let gameIntervals = []; // To store intervals for stopping/starting
+
+// --- DOM Elements ---
+const dom = {
+    startButton: document.getElementById('start-button'),
+    startButtonContainer: document.getElementById('start-button-container'),
+    promptArea: document.getElementById('prompt-area'),
+    headerTitle: document.getElementById('header-title'),
+    // Modals
+    walletModal: document.getElementById('wallet-modal'),
+    marketModal: document.getElementById('market-modal'),
+    // Widgets
+    assetWidget: document.getElementById('asset-widget'),
+    marketWidget: document.getElementById('market-widget'),
+    btcBalance: document.getElementById('btc-balance'),
+    btcValueUsd: document.getElementById('btc-value-usd'),
+    stockListWidget: document.getElementById('stock-list-widget'),
+    // Modal Content
+    walletModalTotal: document.getElementById('wallet-modal-total'),
+    walletModalCash: document.getElementById('wallet-modal-cash'),
+    walletModalStocks: document.getElementById('wallet-modal-stocks'),
+    walletModalBtc: document.getElementById('wallet-modal-btc'),
+    marketModalContent: document.getElementById('market-modal-content'),
+    // Nav
+    navButtons: document.querySelectorAll('.nav-button'),
+    // Settings
+    resetButton: document.getElementById('reset-game-btn'),
+};
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
-    // Fetch BTC price
-    try {
-        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
-        const data = await res.json();
-        btcPrice = data.bitcoin.usd;
-    } catch (e) {
-        console.log('Using default BTC price');
+    setupEventListeners();
+    initCodeMirror();
+    
+    // Try to load saved state
+    if (!loadState()) {
+        // No save state, show start button
+        dom.startButtonContainer.style.display = 'block';
+    } else {
+        // Save state loaded, start game immediately
+        startGame();
     }
-
-    // Setup CodeMirror
-    const textarea = document.getElementById('myTextarea');
-    editor = CodeMirror.fromTextArea(textarea, {
-        mode: 'javascript',
-        theme: 'monokai',
-        lineNumbers: true,
-        readOnly: 'nocursor'
-    });
-
-    // Update UI
-    updateWallet();
-    updateStocks();
-
-    // Passive reward every second (Approx $13.75/s to reach $1M in 20h)
-    setInterval(() => {
-        cash += 13.75; 
-        updateWallet();
-    }, 1000);
-
-    // Simulate stock prices every 30s
-    setInterval(() => {
-        stocks.forEach(stock => {
-            stock.price *= (1 + (Math.random() - 0.5) * 0.02);
-            stock.price = Math.max(1, stock.price); // Keep price as number
-        });
-        updateStocks();
-    }, 30000);
-
-    // Start simulation
-    simulateCoding();
+    
+    // Always fetch BTC price and update UI
+    await fetchBtcPrice();
+    updateAllUI();
 
     // PWA service worker
     if ('serviceWorker' in navigator) {
@@ -59,41 +67,160 @@ async function init() {
     }
 }
 
-function updateWallet() {
-    const btcEquiv = (cash / btcPrice).toFixed(6);
-    // Target the specific span to avoid overwriting the caret
-    document.getElementById('wallet-text').innerText = `Asset Wallet: $${cash.toFixed(0)} (BTC: ${btcEquiv})`;
+function initCodeMirror() {
+    const textarea = document.getElementById('myTextarea');
+    editor = CodeMirror.fromTextArea(textarea, {
+        mode: 'javascript',
+        theme: 'monokai',
+        lineNumbers: true,
+        readOnly: 'nocursor'
+    });
 }
 
-function toggleStocks() {
-    const stocksList = document.getElementById('stocks-list');
-    const wallet = document.getElementById('wallet');
-    const caret = document.getElementById('wallet-caret');
+function setupEventListeners() {
+    // Game Start
+    dom.startButton.addEventListener('click', () => {
+        dom.startButtonContainer.style.display = 'none';
+        startGame();
+    });
+
+    // Navigation
+    dom.navButtons.forEach(button => {
+        button.addEventListener('click', () => navigate(button.dataset.page));
+    });
+
+    // Modals
+    dom.assetWidget.addEventListener('click', openWalletModal);
+    dom.marketWidget.addEventListener('click', openMarketModal);
     
-    // Check display style OR empty string (for first click)
-    if (stocksList.style.display === 'none' || stocksList.style.display === '') {
-        stocksList.style.display = 'block';
-        wallet.classList.add('active');
-        caret.innerHTML = '▲';
-    } else {
-        stocksList.style.display = 'none';
-        wallet.classList.remove('active');
-        caret.innerHTML = '▼';
+    document.querySelectorAll('.modal-close').forEach(button => {
+        button.addEventListener('click', () => closeModal(button.dataset.modal));
+    });
+    
+    // Settings
+    dom.resetButton.addEventListener('click', resetGame);
+}
+
+// --- Game Loop ---
+function startGame() {
+    // Clear any existing intervals
+    gameIntervals.forEach(clearInterval);
+    gameIntervals = [];
+
+    // Passive reward (Approx $13.75/s to reach $1M in 20h)
+    gameIntervals.push(setInterval(() => {
+        cash += 13.75;
+        updateAllUI();
+        saveState(); // Save periodically
+    }, 1000));
+
+    // Simulate stock prices
+    gameIntervals.push(setInterval(() => {
+        stocks.forEach(stock => {
+            stock.price *= (1 + (Math.random() - 0.5) * 0.02);
+            stock.price = Math.max(1, stock.price);
+        });
+        updateAllUI();
+    }, 30000));
+
+    // Start coding simulation
+    simulateCoding();
+}
+
+async function fetchBtcPrice() {
+    try {
+        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+        const data = await res.json();
+        btcPrice = data.bitcoin.usd;
+    } catch (e) {
+        console.log('Using default BTC price');
     }
 }
 
-function updateStocks() {
-    const container = document.getElementById('stocks-list');
-    container.innerHTML = '';
+// --- Navigation & Modals ---
+function navigate(pageName) {
+    // Update header title
+    const pageTitles = {
+        'main': 'Main',
+        'network': 'Network',
+        'mail': 'Mail',
+        'settings': 'Settings'
+    };
+    dom.headerTitle.innerText = pageTitles[pageName] || 'Main';
+
+    // Update active page
+    document.querySelectorAll('.page-content').forEach(page => {
+        page.classList.toggle('active', page.id === `page-${pageName}`);
+    });
+
+    // Update active nav button
+    dom.navButtons.forEach(button => {
+        button.classList.toggle('active', button.dataset.page === pageName);
+    });
+}
+
+function openWalletModal() {
+    updateWalletModal();
+    dom.walletModal.classList.add('active');
+}
+
+function openMarketModal() {
+    updateMarketModal();
+    dom.marketModal.classList.add('active');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId)?.classList.remove('active');
+}
+
+// --- UI Update Functions ---
+function updateAllUI() {
+    updateWalletWidget();
+    updateMarketWidget();
+    // Update modals only if they are open
+    if (dom.walletModal.classList.contains('active')) updateWalletModal();
+    if (dom.marketModal.classList.contains('active')) updateMarketModal();
+}
+
+function updateWalletWidget() {
+    const btcEquiv = (cash / btcPrice).toFixed(6);
+    dom.btcBalance.innerText = `${btcEquiv} BTC`;
+    dom.btcValueUsd.innerText = `$${cash.toFixed(2)} USD`;
+}
+
+function updateMarketWidget() {
+    dom.stockListWidget.innerHTML = '';
+    stocks.slice(0, 4).forEach(stock => { // Show first 4
+        const item = document.createElement('div');
+        item.className = 'market-widget-item';
+        item.innerHTML = `
+            <span class="symbol">${stock.symbol}</span>
+            <span class="price">$${stock.price.toFixed(2)}</span>
+        `;
+        dom.stockListWidget.appendChild(item);
+    });
+}
+
+function updateWalletModal() {
+    const stockValue = stocks.reduce((acc, s) => acc + (s.owned * s.price), 0);
+    const totalValue = cash + stockValue;
+    const btcEquiv = (totalValue / btcPrice).toFixed(6);
+
+    dom.walletModalTotal.innerText = `$${totalValue.toFixed(2)}`;
+    dom.walletModalCash.innerText = `$${cash.toFixed(2)}`;
+    dom.walletModalStocks.innerText = `$${stockValue.toFixed(2)}`;
+    dom.walletModalBtc.innerText = `${btcEquiv} BTC`;
+}
+
+function updateMarketModal() {
+    dom.marketModalContent.innerHTML = '';
     stocks.forEach(stock => {
         const item = document.createElement('div');
         item.className = 'stock-item';
-        
-        // New HTML structure for the redesigned stock item
         item.innerHTML = `
             <div class="stock-details">
                 <span class="stock-symbol">${stock.symbol}</span>
-                <span class="stock-price">$${Number(stock.price).toFixed(2)}</span>
+                <span class="stock-price">$${stock.price.toFixed(2)}</span>
                 <span class="stock-meta">Owned: ${stock.owned} | Value: $${(stock.owned * stock.price).toFixed(2)}</span>
             </div>
             <div class="stock-buttons">
@@ -101,32 +228,33 @@ function updateStocks() {
                 <button class="sell" onclick="sellStock('${stock.symbol}')">Sell</button>
             </div>
         `;
-        container.appendChild(item);
+        dom.marketModalContent.appendChild(item);
     });
 }
 
-function buyStock(symbol) {
+// --- Stock Functions ---
+// Make buy/sell global so inline onclick can find them
+window.buyStock = function(symbol) {
     const stock = stocks.find(s => s.symbol === symbol);
     if (cash >= stock.price) {
         cash -= stock.price;
         stock.owned++;
-        updateWallet();
-        updateStocks();
+        updateAllUI();
+        saveState();
     }
 }
 
-function sellStock(symbol) {
+window.sellStock = function(symbol) {
     const stock = stocks.find(s => s.symbol === symbol);
     if (stock.owned > 0) {
         cash += stock.price;
         stock.owned--;
-        updateWallet();
-        updateStocks();
+        updateAllUI();
+        saveState();
     }
 }
 
-// --- Simulation Logic (Unchanged, but modified prompt function) ---
-
+// --- Coding Simulation ---
 const codeLines = [
     'const greeting = "Hello, World!";',
     'function add(a, b) {',
@@ -161,7 +289,7 @@ async function typeChar(char) {
     const pos = editor.getCursor();
     editor.replaceRange(char, pos);
     editor.setCursor({line: pos.line, ch: pos.ch + 1});
-    await delay(Math.random() * 100 + 30); // 30-130ms (Slightly faster)
+    await delay(Math.random() * 100 + 30);
 }
 
 async function backspace(num = 1) {
@@ -178,12 +306,12 @@ async function backspace(num = 1) {
 async function typeLine(line) {
     for (let char of line) {
         await typeChar(char);
-        if (Math.random() < 0.04) { // 4% chance to backspace
+        if (Math.random() < 0.04) {
             await backspace(Math.floor(Math.random() * 3) + 1);
         }
     }
     await typeChar('\n');
-    editor.execCommand("goDocEnd"); // Scroll to bottom
+    editor.execCommand("goDocEnd");
 }
 
 function getRandomLine() {
@@ -200,25 +328,29 @@ const choiceOptions = [
 
 async function promptChoice() {
     return new Promise(resolve => {
-        const prompts = document.getElementById('prompts');
-        prompts.classList.add('show'); // Use class to trigger animation
+        dom.promptArea.style.display = 'block';
 
-        const opts = [...choiceOptions].sort(() => Math.random() - 0.5); // Shuffle
+        const opts = [...choiceOptions].sort(() => Math.random() - 0.5);
+        
+        const btn1 = document.getElementById('option1');
+        const btn2 = document.getElementById('option2');
+        const btn3 = document.getElementById('option3');
 
-        document.getElementById('option1').innerText = `${opts[0].text} (+$${opts[0].reward})`;
-        document.getElementById('option1').onclick = () => choose(opts[0]);
+        btn1.innerText = `${opts[0].text} (+$${opts[0].reward})`;
+        btn1.onclick = () => choose(opts[0]);
 
-        document.getElementById('option2').innerText = `${opts[1].text} (+$${opts[1].reward})`;
-        document.getElementById('option2').onclick = () => choose(opts[1]);
+        btn2.innerText = `${opts[1].text} (+$${opts[1].reward})`;
+        btn2.onclick = () => choose(opts[1]);
 
-        document.getElementById('option3').innerText = `${opts[2].text} (+$${opts[2].reward})`;
-        document.getElementById('option3').onclick = () => choose(opts[2]);
+        btn3.innerText = `${opts[2].text} (+$${opts[2].reward})`;
+        btn3.onclick = () => choose(opts[2]);
 
         function choose(opt) {
             typeLine(`// User selected: ${opt.text}`);
             cash += opt.reward;
-            updateWallet();
-            prompts.classList.remove('show'); // Use class to hide
+            updateAllUI();
+            saveState();
+            dom.promptArea.style.display = 'none';
             resolve();
         }
     });
@@ -228,10 +360,10 @@ async function simulateCoding() {
     while (true) {
         const line = getRandomLine();
         await typeLine(line);
-        if (Math.random() < 0.15) { // 15% chance for prompt after line
+        if (Math.random() < 0.15) {
             await promptChoice();
         }
-        if (editor.lineCount() > 50) { // Clear if too long
+        if (editor.lineCount() > 50) {
             await delay(1000);
             editor.setValue('// Clearing buffer...\n');
             await delay(1000);
@@ -240,5 +372,32 @@ async function simulateCoding() {
     }
 }
 
-// Start the application
-init();
+// --- State Management ---
+function saveState() {
+    const state = { cash, stocks };
+    localStorage.setItem('codex-save-v2', JSON.stringify(state));
+}
+
+function loadState() {
+    const savedState = localStorage.getItem('codex-save-v2');
+    if (savedState) {
+        try {
+            const state = JSON.parse(savedState);
+            cash = state.cash;
+            stocks = state.stocks;
+            return true;
+        } catch (e) {
+            console.error('Failed to load state', e);
+            localStorage.removeItem('codex-save-v2');
+            return false;
+        }
+    }
+    return false;
+}
+
+function resetGame() {
+    if (confirm('Are you sure you want to purge all local data and reset the game?')) {
+        localStorage.removeItem('codex-save-v2');
+        window.location.reload();
+    }
+}
